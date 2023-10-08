@@ -59,7 +59,6 @@ class CharList extends Component {
 		})
 	}
 
-
 	itemRefs = [];
 
 	setRef = (ref) => {
