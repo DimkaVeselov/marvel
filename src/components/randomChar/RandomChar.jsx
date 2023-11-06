@@ -1,24 +1,26 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
-import MarvelServices from '../../services/MarvelServices';
-import './randomChar.scss';
+import useMarvelServices from '../../services/MarvelServices';
+
 import mjolnir from '../../resources/img/mjolnir.png';
+import './randomChar.scss';
 
 
-const RandomChar = (props) => {
 
-	const [char, setChar] = useState({});
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(false)
+const RandomChar = () => {
+
+	const [char, setChar] = useState(null);
+
+	const { loading, error, getCharacter, clearError } = useMarvelServices()
 
 
-	const marvelService = new MarvelServices();
 
 	useEffect(() => {
 		updateChar()
 
-		const updateCharInterval = setInterval(updateChar, 50000)
+		const updateCharInterval = setInterval(updateChar, 100000)
 
 		return () => {
 			clearInterval(updateCharInterval)
@@ -27,30 +29,17 @@ const RandomChar = (props) => {
 
 	const onCharLoaded = (char) => {
 		setChar(char)
-		setLoading(false)
-	}
-
-	const onCharLoading = () => {
-		setLoading(true)
-	}
-
-	const onError = () => {
-		setLoading(false)
-		setError(true)
 	}
 
 	const updateChar = () => {
+		clearError();
 		const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000);
-		onCharLoading();
-		marvelService
-			.getCharacter(id)
-			.then(onCharLoaded)
-			.catch(onError)
+		getCharacter(id).then(onCharLoaded)
 	}
 
-	const errorMessage = error ? <ErrorMessage /> : null
-	const spinner = loading ? <Spinner /> : null
-	const content = !(loading || error) ? <View char={char} /> : null
+	const errorMessage = error ? <ErrorMessage /> : null;
+	const spinner = loading ? <Spinner /> : null;
+	const content = !(loading || error || !char) ? <View char={char} /> : null;
 
 	return (
 		<div className="randomchar">
@@ -65,7 +54,7 @@ const RandomChar = (props) => {
 				<p className="randomchar__title">
 					Or choose another one
 				</p>
-				<button className="button button__main" onClick={updateChar}>
+				<button onClick={updateChar} className="button button__main">
 					<div className="inner">try it</div>
 				</button>
 				<img src={mjolnir} alt="mjolnir" className="randomchar__decoration" />
@@ -75,12 +64,12 @@ const RandomChar = (props) => {
 }
 
 const View = ({ char }) => {
-	const { name, thumbnail, description, homepage, wiki } = char;
+	const { name, description, thumbnail, homepage, wiki } = char;
 	let imgStyle = { 'objectFit': 'cover' };
 	if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
 		imgStyle = { 'objectFit': 'contain' };
 	}
-	
+
 	return (
 		<div className="randomchar__block">
 			<img src={thumbnail} alt="Random character" className="randomchar__img" style={imgStyle} />
@@ -90,10 +79,10 @@ const View = ({ char }) => {
 					{description}
 				</p>
 				<div className="randomchar__btns">
-					<a href={homepage} target='_blank' rel="noreferrer" className="button button__main">
+					<a href={homepage} className="button button__main">
 						<div className="inner">homepage</div>
 					</a>
-					<a href={wiki} target='_blank' rel="noreferrer" className="button button__secondary">
+					<a href={wiki} className="button button__secondary">
 						<div className="inner">Wiki</div>
 					</a>
 				</div>
@@ -101,5 +90,6 @@ const View = ({ char }) => {
 		</div>
 	)
 }
+
 
 export default RandomChar;
